@@ -1,0 +1,43 @@
+{% load custom_filters %}
+<div id="data_div" class="col-md-8" style="height:700px">
+    <table class="selected_map" style="margin-top: 10px; margin-bottom: 10px; margin-left: auto; margin-right: auto;">
+        <tbody>
+            <td id="selected_map_fixed" align="left">
+                Selected Map:
+            </td>
+            <td align="right">
+                <select id="selected_map">
+                    {% for data in dataFormatNode %}
+                        <option value={{data|split_node}}>{{data|split_node}}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tbody>
+    </table>
+    <div id="map_div" class="days-hours-heatmap" style="margin-top: 10px">
+        <!-- heatmap -->
+        <svg id="heatmap" role="heatmap" class="heatmap" width="500" height="500" style="opacity: 1.0"></svg>
+        <!-- calibration and render type controller -->
+        <div class="calibration" role="calibration">
+            <div class="group" role="example">
+                <svg id="calibration" width="600" height="17"></svg>
+                <div role="values" class="description">
+                    <label id="less">Less</label>
+                    <label id="more">More</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="serie_div" style="opacity: 1.0; margin-top: 10px;">
+        <div style="margin: auto" align="middle">
+            <label for="from">From</label>
+            <input type="text" autocomplete="off" id="from" name="from">
+            <label for="to">to</label>
+            <input type="text" autocomplete="off" id="to" name="to">
+        </div>
+        <script>select_dates();</script>
+        <div id="serie_subdiv">
+            <svg id="timeseries"></svg>
+        </div>
+    </div>
+</div>

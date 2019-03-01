@@ -1,0 +1,31 @@
+{% load custom_filters %}
+<div id="right" class="col-md-4">
+    <div id="right_panel" style="margin-top: 10px;">
+        <h3>
+            <span class="glyphicon glyphicon-cloud-download"> </span>
+            Node
+            <select id="node_selection">
+                {% for i in range %}
+                    <option value={{i}}>{{i|add:"1"}}</option>
+                {% endfor %}
+            </select>
+        </h3>
+        <table class="table" >
+            <thead>
+                <tr>
+                    <th style="text-align:left">Parameter</th>
+                    <th style="text-align:right">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in dataFormatNode %}
+                    <tr>
+                        <td id={{data|split_node}} type="button">{{data|split_node}}</td>
+                        <td id={{data}} align="right" class="value_box">0</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p></p>
+    </div>
+</div>

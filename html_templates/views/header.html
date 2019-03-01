@@ -1,0 +1,22 @@
+<!-- views/partials/header.ejs -->
+{% load static %}
+<div id="logo_background">
+    <img id="logo" src="{% static 'logo_mwl.png' %}"/>
+</div>
+<nav class="navbar" role="navigation">
+    <div class="navbar-header">
+        <ul class="nav navbar-nav">
+            <li><a id="nav_name">Telemetría para Pilas y Relaves</a></li>
+            <li><a id="nav_info"> Display node information</a></li>
+            <li><a class="nav_menu">
+                2D data
+                <label class="switch">
+                <input type="checkbox" id="nav_data">
+                <span class="slider round"></span>
+                </label>
+                Time data
+            </a></li>
+        </ul>
+    </div>
+    <img id="logo_2" src="{% static 'logo_mwl.png' %}"/>
+</nav>
