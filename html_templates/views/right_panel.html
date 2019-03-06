@@ -1,23 +1,23 @@
 {% load custom_filters %}
-<div class="col-md-4" id="right" style="background-color: rgba(255, 255, 255, 0.5); height: 100%">
-    <div class="row" style="margin-top:20px;" align="middle">
-        <div class="col-md-4 col-md-offset-1 panel_box">
+<div class="col-xs-12 col-lg-4 right-panel">
+    <div class="row data-selection" align="middle">
+        <div class="col-xs-4 col-xs-offset-1 panel-box">
             <p>Selected Map:</p>
-            <select id="selected_map">
+            <select class="selected_map">
                 {% for data in dataFormatNode %}
                     <option value={{data|split_node}}>{{data|split_node}}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-5 col-md-offset-1 panel_box">
+        <div class="col-xs-5 col-xs-offset-1 panel-box">
             <div class="row">
-                <div class="col-md-8">
-                    <ul>
-                        <span>2D data</span>
-                        <span>Time data</span>
-                    </ul>
+                <div class="col-xs-7" align="right">
+                    <span>
+                        <p>Map data</p>
+                        <p>Time data</p>
+                    </span>
                 </div>
-                <div class="col-md-4" align="left">
+                <div class="col-xs-5" align="left">
                     <label class="switch">
                     <input type="checkbox" id="nav_data">
                     <span class="slider round"></span>
@@ -26,23 +26,26 @@
             </div>
         </div>
     </div>
-    <div class="row" align="middle">
-        <div class="col-md-10 col-md-offset-1 panel_box">
-            <div>
-                <label for="from" style="text-align:left">From</label>
-                <input type="text" autocomplete="off" id="from" name="from" style="width:25%;">
-                <label for="to" style="text-align:right">to</label>
-                <input type="text" autocomplete="off" id="to" name="to" style="width:25%;">
+    <div class="row data-selection" align="middle">
+        <div class="col-xs-10 col-xs-offset-1 panel-box">
+            <div class="row" style="display:flex; flex-direction: row;align-content: stretch;">
+                <div class="col-xs-4 col-xs-offset-1">
+                    <label class="date-selection">From</label>
+                    <input class="date-input" type="text" autocomplete="off" id="from" name="from">
+                </div>
+                <div class="col-xs-4 col-xs-offset-2">
+                    <label class="date-selection">To</label>
+                    <input class="date-input" type="text" autocomplete="off" id="to" name="to">
+                </div>
             </div>
         </div>
     </div>
-    <script>select_dates();</script>
     <div class="row">
-        <div class="col-md-10 col-md-offset-1 panel_box" id="right_panel" style="margin-top: 20px;padding-left: 20px;padding-right: 20px">
+        <div class="col-xs-10 col-xs-offset-1 data-table panel-box">
             <h3>
                 <span class="glyphicon glyphicon-cloud-download"> </span>
                 Node
-                <select id="node_selection">
+                <select class="node-selection">
                     {% for i in range %}
                         <option value={{i}}>{{i|add:"1"}}</option>
                     {% endfor %}
@@ -51,14 +54,14 @@
             <table class="table" >
                 <thead>
                     <tr>
-                        <th style="text-align:left">Parameter</th>
-                        <th style="text-align:right">Value</th>
+                        <th class="parameter-header">Parameter</th>
+                        <th class="value-header">Value</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for data in dataFormatNode %}
                         <tr>
-                            <td id={{data|split_node}} type="button">{{data|split_node}}</td>
+                            <td class="paramenter-name" id={{data|split_node}} type="button">{{data|split_node}}</td>
                             <td id={{data}} align="right" class="value_box">0</td>
                         </tr>
                     {% endfor %}

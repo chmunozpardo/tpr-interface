@@ -2,14 +2,17 @@ var xElements = 3;
 var yElements = 3;
 var dx_tip = -50;
 var dy_tip = 30;
+var width;
+var height;
 
 var xElementsInterp = 30;
 var yElementsInterp = 30;
 
-var heatmap_name = '[id="heatmap"]';
-var calibration_name = '[id="calibration"]';
-var nodeselection_name = '#node_selection';
-var dataselection_name = '#selected_map';
+var heatmap_name = '.heatmap';
+var timedata_name = '.timemap';
+var calibration_name = '.calibration-scale';
+var nodeselection_name = '.node-selection';
+var dataselection_name = '.selected_map';
 var color_scheme = d3.interpolateSpectral;
 var selected_map = 'TemperatureNode';
 var map_series_selection = 'Map';
@@ -129,25 +132,25 @@ function drawChart(data_unparsed) {
             value: data_unparsed[i]['value']
         })
     }
+    var tmp_mapdata = d3.select('.mid-panel').node().getBoundingClientRect();
+    width = tmp_mapdata.right - tmp_mapdata.left;
+    var margin = { top: 60, right: 30, bottom: 60, left: 80 };
+    var svgWidth = width - margin.left - margin.right;
+    var svgHeight = height - margin.top - margin.bottom;
 
-    var svgWidth = 690, svgHeight = 590;
-    var margin = { top: 60, right: 40, bottom: 30, left: 100 };
-    var width = svgWidth - margin.left - margin.right;
-    var height = svgHeight - margin.top - margin.bottom;
+    var svg = d3.select(timedata_name)
+        .attr('width', width)
+        .attr('height', height);
 
-    var svg = d3.select('[id="timeseries"]')
-        .attr('width', svgWidth)
-        .attr('height', svgHeight);
-
-    svg.selectAll("*").remove()
+    svg.selectAll('*').remove();
 
     var g = svg.append('g')
     .attr('transform',
         'translate(' + margin.left + ',' + margin.top + ')'
     );
 
-    var x = d3.scaleTime().rangeRound([0, width - 50]);
-    var y = d3.scaleLinear().rangeRound([height, 0]);
+    var x = d3.scaleTime().rangeRound([0, svgWidth - 50]);
+    var y = d3.scaleLinear().rangeRound([svgHeight, 0]);
 
     var line = d3.line()
         .x(function(d){ return x(d.date) })
@@ -167,20 +170,20 @@ function drawChart(data_unparsed) {
     g.append('g')
     .attr('class', 'grid')
     .call(make_x_gridlines()
-        .tickSize(height)
+        .tickSize(svgHeight)
         .tickFormat('')
     );
 
     g.append('g')
     .attr('class', 'grid')
     .call(make_y_gridlines()
-        .tickSize(-(width-50))
+        .tickSize(-(svgWidth-50))
         .tickFormat('')
     );
 
     g.append('g')
     .attr('class', 'white_axis')
-    .attr('transform', 'translate(0,' + height + ')')
+    .attr('transform', 'translate(0,' + svgHeight + ')')
     .call(d3.axisBottom(x))
 
     g.append('g')
@@ -192,7 +195,7 @@ function drawChart(data_unparsed) {
 
     g.append('g')
     .attr('class', 'white_axis')
-    .attr('transform', 'translate(' + parseInt(width - 50) + ', 0)')
+    .attr('transform', 'translate(' + parseInt(svgWidth - 50) + ', 0)')
     .call(d3.axisLeft(y))
     .attr('stroke-width', 2)
     .selectAll('text')
@@ -238,7 +241,7 @@ function drawChart(data_unparsed) {
         dx = cx+dx_tip
         dy = cy-dy_tip
         asdf = new Date(d.date)
-        d3.select('[id="timeseries"]').append('rect')
+        d3.select(timedata_name).append('rect')
             .attr('id', 'tip_rect')
             .attr('x', parseInt(x_t)-70)
             .attr('y', parseInt(y_t)-60)
@@ -247,7 +250,7 @@ function drawChart(data_unparsed) {
             .attr('fill', 'black')
             .attr('opacity', 0.7)
             .style('pointer-events','none');
-        d3.select('[id="timeseries"]').append('text')
+        d3.select(timedata_name).append('text')
             .attr('id', 'tip_text_date')
             .text(''+asdf.getDate()+'/'+(asdf.getMonth()+1)+'/'+asdf.getFullYear()+'-'+('0' + asdf.getHours()).slice(-2)+':'+('0' + asdf.getMinutes()).slice(-2))
             .attr('text-anchor', 'end')
@@ -256,7 +259,7 @@ function drawChart(data_unparsed) {
             .attr('fill', 'white')
             .attr('font-size', '16px')
             .style('pointer-events','none');
-        d3.select('[id="timeseries"]').append('text')
+        d3.select(timedata_name).append('text')
             .attr('id', 'tip_text_value')
             .text(''+d.value.toFixed(3) + dataFormatUnits[selected_map])
             .attr('text-anchor', 'end')
@@ -265,7 +268,7 @@ function drawChart(data_unparsed) {
             .attr('fill', 'white')
             .attr('font-size', '16px')
             .style('pointer-events','none');
-        d3.select('[id="timeseries"]').append('line')
+        d3.select(timedata_name).append('line')
             .attr('id', 'tip_line')
             .attr('x1', x_t)
             .attr('y1', y_t)
@@ -274,7 +277,7 @@ function drawChart(data_unparsed) {
             .attr('stroke-width', 1)
             .attr('stroke', 'red')
             .style('pointer-events','none');
-        d3.select('[id="timeseries"]').append('circle')
+        d3.select(timedata_name).append('circle')
             .attr('id', 'tip_circle')
             .attr('cx', x_t)
             .attr('cy', y_t)
@@ -323,22 +326,20 @@ function renderColor(){
     svg.selectAll('defs').remove();
 
     for(var i = 0; i < xElements*yElements; i++){
-        svg.select('rect[id=node_acc_'+i+']').remove();
-        svg.select('line[id=arrow_line_'+i+']').remove();
+        svg.select('rect#node_acc_'+i).remove();
+        svg.select('line#arrow_line_'+i).remove();
     }
 
     var svg = d3.select(calibration_name);
-    svg.select('rect[id=calib_rect]').remove();
+    svg.select('rect#calib_rect').remove();
 
     if(selected_map == 'MoistureNode'){
         min_val =   0.0;
         max_val = 60.0;
         svg.append('rect')
             .attr('id', 'calib_rect')
-            .attr('width', 500)
-            .attr('height', 17)
-            .attr('x', 0)
-            .attr('y', 0)
+            .attr('width', width)
+            .attr('height', 20)
             .style('fill', 'url(#svgGradient_normal)');
     }
     else if(selected_map == 'TemperatureNode'){
@@ -346,10 +347,8 @@ function renderColor(){
         max_val = 30.0;
         svg.append('rect')
             .attr('id', 'calib_rect')
-            .attr('width', 500)
-            .attr('height', 17)
-            .attr('x', 0)
-            .attr('y', 0)
+            .attr('width', width)
+            .attr('height', 20)
             .style('fill', 'url(#svgGradient_inverted)');
     }
     else if(selected_map == 'AccelerationNode' || selected_map == 'ElevationNode' || selected_map == 'AzimuthNode'){
@@ -357,10 +356,8 @@ function renderColor(){
         max_val = 60.0;
         svg.append('rect')
             .attr('id', 'calib_rect')
-            .attr('width', 500)
+            .attr('width', width)
             .attr('height', 17)
-            .attr('x', 0)
-            .attr('y', 0)
             .style('fill', 'url(#svgGradient_inverted)');
     }
 
@@ -467,7 +464,7 @@ function renderColor(){
     }
 
     for(var i = 0; i < xElements*yElements; i++){
-        svg.select('rect[id=node_'+i+']').moveToFront();
+        svg.select('rect#node_'+i).moveToFront();
     }
     d3.select('#tip_rect').moveToFront();
     d3.select('#tip_text').moveToFront();
@@ -518,22 +515,23 @@ function get_data() {
 
 $(document).ready(function(){
 
+    var svgWidth;
+    var svgHeight;
+
     date_i_date = new Date();
     date_f_date = new Date();
-
-    height_logo = $('#logo_background').height()
 
     node_info_status = 1;
 
     $('#nav_data').on('click', function(){
         if(map_series_selection == 'Map'){
-            $('#map_div').css({display: 'none'});
-            $('#serie_div').css({display: 'block'});
+            $('.mapdata-panel').css({display: 'none'});
+            $('.timedata-panel').css({display: 'block'});
             map_series_selection = 'Serie';
         }
         else{
-            $('#map_div').css({display: 'block'});
-            $('#serie_div').css({display: 'none'});
+            $('.mapdata-panel').css({display: 'block'});
+            $('.timedata-panel').css({display: 'none'});
             map_series_selection = 'Map';
         }
     });
@@ -575,32 +573,47 @@ $(document).ready(function(){
         .attr('stop-opacity', 1);
     }
 
-    var svg = d3.select(calibration_name);
-    svg.append('rect')
-        .attr('id', 'calib_rect')
-        .attr('width', 500)
-        .attr('height', 17)
-        .attr('x', 0)
-        .attr('y', 0)
-        .style('fill', 'url(#svgGradient)');
-
     var min_val = 1
     var max_val = 100
     $('#less').text(min_val.toFixed(2) + '')
     $('#more').text(max_val.toFixed(2) + '')
 
-    var svg = d3.select(heatmap_name),
-    width = +svg.attr('width'),
-    height = +svg.attr('height');
+    var svg = d3.select(heatmap_name);
+    var tmp_height = d3.select('.mid-panel').node().getBoundingClientRect();
+    var tmp_mapdata = d3.select('.mapdata-panel').node().getBoundingClientRect();
+    width = tmp_mapdata.right - tmp_mapdata.left;
+    height = tmp_height.bottom - tmp_height.top;
+    if(width <= height - 100){
+        svgWidth = width;
+        svgHeight = width;
+    }
+    else{
+        svgWidth = height - 100;
+        svgHeight = height - 100;
+    }
+    svg.attr('width', svgWidth)
+    svg.attr('height', svgHeight)
 
+    var svg = d3.select(calibration_name);
+    svg.attr('width', svgWidth)
+    svg.append('rect')
+        .attr('id', 'calib_rect')
+        .attr('width', svgWidth)
+        .attr('height', 20)
+        .style('fill', 'url(#svgGradient)');
+
+    var desc = d3.select('.description');
+    desc.style('width', svgWidth)
+
+    var svg = d3.select(heatmap_name);
     for(var i = 0; i < xElements; i++){
         for(var j = 0; j < yElements; j++){
             svg.append('rect')
                 .attr('id', 'node_'+(i+xElements*j))
-                .attr('x', width*i/xElements)
-                .attr('y', height*j/xElements)
-                .attr('width', width/xElements)
-                .attr('height', height/xElements)
+                .attr('x', svgWidth*i/xElements)
+                .attr('y', svgHeight*j/xElements)
+                .attr('width', svgWidth/xElements)
+                .attr('height', svgHeight/xElements)
                 .attr('opacity', 0.0)
                 .on('mouseover', function(){
                     x_t = d3.select(this).attr('x')
@@ -665,15 +678,4 @@ $(document).ready(function(){
                 });
         }
     }
-
-    $(window).scroll(function(){
-        if($(this).scrollTop() >= height_logo){
-            $('#logo_2').css({opacity : 1.0});
-            $('.navbar').addClass('fixed');
-        }
-        else {
-            $('#logo_2').css({opacity : 0.0});
-            $('.navbar').removeClass('fixed');
-        }
-    });
 });

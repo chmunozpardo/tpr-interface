@@ -1,22 +1,20 @@
 {% load custom_filters %}
-<div class="col-md-8" id="data_div" style="height:700px">
-    <div id="map_div" class="days-hours-heatmap" style="margin-top: 50px">
-        <!-- heatmap -->
-        <svg id="heatmap" role="heatmap" class="heatmap" width="500" height="500" style="opacity: 1.0"></svg>
-        <!-- calibration and render type controller -->
-        <div class="calibration" role="calibration">
-            <div class="group" role="example">
-                <svg id="calibration" width="600" height="17"></svg>
-                <div role="values" class="description">
+<div class="col-xs-12 col-xs-offset-0 col-lg-8 col-lg-offset-0 mid-panel">
+    <div class="row">
+        <div class="col-xs-10 col-xs-offset-1 mapdata-panel">
+            <div class="mapdata">
+                <svg class="heatmap" role="heatmap"></svg>
+                <svg class="calibration-scale" height="20"></svg>
+                <div class="description" role="values">
                     <label id="less">Less</label>
                     <label id="more">More</label>
                 </div>
             </div>
         </div>
-    </div>
-    <div id="serie_div" style="opacity: 1.0; margin-top: 10px;">
-        <div id="serie_subdiv">
-            <svg id="timeseries"></svg>
+        <div class="col-xs-12 timedata-panel">
+            <div class="timedata">
+                <svg class="timemap"></svg>
+            </div>
         </div>
     </div>
 </div>
