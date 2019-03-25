@@ -36,6 +36,15 @@ nav{
     height: 100%;
     flex: 1 1 auto;
     overflow-y: auto;
+    border-width: 2px;
+    background-color: rgba(255,255,255,0.8);
+}
+@media (max-width: 1199px) {
+    .data-container{
+        border-left: solid;
+        border-right: solid;
+        height: auto;
+    }
 }
 .nav{
     color: white;
@@ -77,26 +86,32 @@ nav{
 /* Data display */
 
 .mid-panel{
+    border-width: 2px;
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow: hidden;
 }
+@media (max-width: 1199px) {
+    .mid-panel{
+        height: auto;
+    }
+}
 
 /* Map data */
 
 .mapdata{
-    flex: 1;
+    flex: 0;
     margin-top: 25px;
 }
 .mapdata .calibration-scale{
-    flex: 1;
+    flex: 0;
     margin: auto;
     margin-top: 10px;
     display: block;
 }
 .mapdata .description{
-    flex: 1;
+    flex: 0;
     width: 688px;
     margin: auto;
     margin-top: 10px;
@@ -107,7 +122,7 @@ nav{
     float: right;
 }
 .mapdata .heatmap{
-    flex: 1;
+    flex: 0;
     display: block;
     margin: auto;
     border-style: solid;
@@ -141,11 +156,14 @@ nav{
     display: none;
 }
 .timedata{
+    flex : 0;
     opacity: 1.0;
-    background-color: rgba(255,255,255,0.8);
 }
 .timemap{
-    padding-left: 0;
+    flex: 0;
+    display: block;
+    margin: auto;
+    margin: auto;
 }
 .value_box{
     border-spacing: 0 50px;
@@ -195,9 +213,15 @@ nav{
 .right-panel{
     border-left: solid;
     border-width: 2px;
-    background-color: rgba(255, 255, 255, 0.4);
     height: 100%;
     overflow: auto;
+}
+@media (max-width: 1199px) {
+    .right-panel{
+        border-top: solid;
+        border-left: none;
+        height: auto;
+    }
 }
 .right-panel ul{
     list-style-type: none

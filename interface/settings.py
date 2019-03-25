@@ -34,7 +34,7 @@ SECRET_KEY = django_sk['Parameter']['Value']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['lixibit-gui-dev.krkv2uzgsz.sa-east-1.elasticbeanstalk.com', 'localhost', 'lixibit.tk', 'www.lixibit.tk','10.17.89.233']
+ALLOWED_HOSTS = ['lixibit-gui-dev.krkv2uzgsz.sa-east-1.elasticbeanstalk.com', 'localhost', 'lixibit.tk', 'www.lixibit.tk','10.17.89.135']
 
 
 # Application definition
