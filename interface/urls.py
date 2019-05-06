@@ -22,7 +22,7 @@ from html_templates import views
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin', admin.site.urls),
     path('', views.index, name='index'),
     path('data_query', processing_views.data_query, name='data_query'),
 ]

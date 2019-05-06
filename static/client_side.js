@@ -1,15 +1,18 @@
 $(document).ready(function(){
 
-    var dimensions = {
-        width : 0,
-        height : 0
-    };
-
+    // Elements quantity
     var elements = {
         meas : { x : 3, y : 3},
         interp : { x : 30, y : 30}
     };
 
+    // Visualization dimensions
+    var dimensions = {
+        width : 0,
+        height : 0
+    };
+
+    // Visualization margin
     var margin = {
         top: 50,
         right: 30,
@@ -17,16 +20,19 @@ $(document).ready(function(){
         left: 80
     };
 
+    // 
     var data = {
         nodes : {},
         map : {}
     }
 
+    // Timeseries dates handler
     var date = {
         from : new Date(),
         to : new Date()
     };
 
+    // Main HTML visualization elements
     var dom_elements = {
         heatmap_name : '.heatmap',
         timedata_name : '.timemap',
@@ -37,6 +43,7 @@ $(document).ready(function(){
         map_series_selection : 'Map'
     };
 
+    // Data format (texts and units)
     var data_format = {
         node : [
             'TemperatureNode',
@@ -64,7 +71,7 @@ $(document).ready(function(){
         }
     };
 
-    /* Initialize Heatmap */
+    // Initialize Heatmap
     var tmp_height = d3.select('.data-container').node().getBoundingClientRect();
     var tmp_mapdata = d3.select('.mapdata-panel').node().getBoundingClientRect();
     var tmp_timedata = d3.select('.mid-panel').node().getBoundingClientRect();
@@ -74,13 +81,13 @@ $(document).ready(function(){
     let heatmap = new Heatmap(dom_elements, dimensions, elements);
     heatmap.initializeMap(data, data_format);
 
-    /* Initialize Timedata */
+    // Initialize Timedata
     dimensions.width = tmp_timedata.right - tmp_timedata.left;
 
     let timeserie = new Timedata(dom_elements, dimensions, margin);
     timeserie.initializeSerie(data, data_format);
 
-
+    // Change between Map and Timedata on click
     $('#nav_data').on('click', function(){
         if(dom_elements.map_series_selection == 'Map'){
             $('.mapdata-panel').css({display: 'none'});
@@ -95,10 +102,12 @@ $(document).ready(function(){
         get_data(dom_elements, date, data, data_format, heatmap, timeserie);
     });
 
+    // Change between data type (Moisture, Temperature, etc)
     $(dom_elements.dataselection_name).on('change', function(){
         dom_elements.selected_map = $(this).val() + 'Node';
     });
 
+    // Change between node number
     $(dom_elements.nodeselection_name).on('change', function(){
         j = $(dom_elements.nodeselection_name).val();
         for(var i = 0; i < data_format.node.length; i++){
@@ -110,6 +119,7 @@ $(document).ready(function(){
 
     select_dates();
 
+    // Makes an HTML query to get the data from the webserver
     function get_data(){
 
         var x = new XMLHttpRequest();
@@ -148,6 +158,7 @@ $(document).ready(function(){
         x.send();
     };
 
+    // Routine to display and select the dates of the timeseries data
     function select_dates() {
         var dateFormat = 'dd/mm/yy';
 
@@ -221,13 +232,17 @@ $(document).ready(function(){
     };
 });
 
+// Map class for display
 class Heatmap{
 
+    // Class constructor
     constructor(dom_elements, dimensions, elements){
+
         this.heatmap_svg = d3.select(dom_elements.heatmap_name);
         this.calibration_svg = d3.select(dom_elements.calibration_name);
         this.selected_map = dom_elements.selected_map;
 
+        // Check if window dimensions are more vertical or horizontal
         if(dimensions.width <= dimensions.height - 100){
             this.svgWidth = dimensions.width;
             this.svgHeight = dimensions.width;
@@ -237,28 +252,33 @@ class Heatmap{
             this.svgHeight = dimensions.height - 100;
         }
 
+        // Define the elements quantity
         this.x_elements = elements.meas.x;
         this.y_elements = elements.meas.y;
 
+        // Define the interpolation elements quantity
         this.x_interp = elements.interp.x;
         this.y_interp = elements.interp.y;
     }
 
+    // Initialize color map dimensions and position
     initializeMap(data, data_format){
 
-        var dx_tip = -50;
-        var dy_tip = 30;
-
+        // Save object (Color map) instance
         var self = this;
 
+        // Set SVG Map dimensions
         self.heatmap_svg.attr('width', this.svgWidth);
         self.heatmap_svg.attr('height', this.svgHeight);
 
+        // Used for calibration rectangle SVG definitions
         var defs = self.calibration_svg.append('defs');
 
+        // Normal color gradient for color map scale
         var gradient = defs.append('linearGradient')
             .attr('id', 'svgGradient_normal');
 
+        // Define the gradual change in color
         for(var i = 0; i <= 100; i += 5){
             gradient.append('stop')
             .attr('class', 'stop-' + i)
@@ -267,9 +287,11 @@ class Heatmap{
             .attr('stop-opacity', 1);
         }
 
+        // Inverted color gradient for color map scale
         var gradient = defs.append('linearGradient')
             .attr('id', 'svgGradient_inverted');
 
+        // Define the gradual change in color
         for(var i = 0; i <= 100; i += 5){
             gradient.append('stop')
             .attr('class', 'stop-' + i)
@@ -278,11 +300,17 @@ class Heatmap{
             .attr('stop-opacity', 1);
         }
 
+        // Define the tip position when hovering over node rectangle
+        var dx_tip = -50;
+        var dy_tip = 30;
+
+        // Define the minimum and maximum value of the color gradient scale
         var min_val = 1
         var max_val = 100
         $('#less').text(min_val.toFixed(2) + '')
         $('#more').text(max_val.toFixed(2) + '')
 
+        // Set SVG gradient rectangle dimensions
         self.calibration_svg.attr('width', self.svgWidth)
         self.calibration_svg.append('rect')
             .attr('id', 'calib_rect')
@@ -290,9 +318,11 @@ class Heatmap{
             .attr('height', 20)
             .style('fill', 'url(#svgGradient)');
 
+        // Set gradient rectangle minimum and maximum value position
         var desc = d3.select('.description');
         desc.style('width', self.svgWidth);
 
+        // Add hovering tip and rectangles to every node rectangle
         for(var i = 0; i < this.x_elements; i++){
             for(var j = 0; j < this.y_elements; j++){
                 self.heatmap_svg.append('rect')
@@ -303,6 +333,8 @@ class Heatmap{
                     .attr('height', self.svgHeight/self.y_elements)
                     .attr('opacity', 0.0)
                     .on('mouseover', function(){
+                        // Add the tip and rectangle when hovering inside node's rectangle
+
                         var x_t = $(this).attr('x');
                         var y_t = $(this).attr('y');
                         var w = $(this).attr('width');
@@ -311,7 +343,9 @@ class Heatmap{
                         var cy = parseInt(y_t)+parseInt(h)/2;
                         var dx = cx+dx_tip;
                         var dy = cy-dy_tip;
+
                         $(this).attr('opacity', 0.3);
+                        // Define node's rectangle
                         self.heatmap_svg.append('rect')
                             .attr('id', 'tip_rect')
                             .attr('x', dx)
@@ -321,6 +355,7 @@ class Heatmap{
                             .attr('fill', 'black')
                             .attr('opacity', 0.3)
                             .style('pointer-events','none');
+                        // Define node's rectangle text
                         self.heatmap_svg.append('text')
                             .attr('id', 'tip_text')
                             .text(''+data.nodes[$(this).attr('id')][self.selected_map] + data_format.units[self.selected_map])
@@ -330,6 +365,7 @@ class Heatmap{
                             .attr('fill', 'white')
                             .attr('font-size', '16px')
                             .style('pointer-events','none');
+                        // Define node's rectangle line
                         self.heatmap_svg.append('line')
                             .attr('id', 'tip_line')
                             .attr('x1', cx)
@@ -339,7 +375,8 @@ class Heatmap{
                             .attr('stroke-width', 1)
                             .attr('stroke', 'red')
                             .style('pointer-events','none');
-                        self.heatmap_svg.append("circle")
+                        // Define node's rectangle middle red circle
+                        self.heatmap_svg.append('circle')
                             .attr('id', 'tip_circle')
                             .attr('cx', cx)
                             .attr('cy', cy)
@@ -348,16 +385,23 @@ class Heatmap{
                             .style('pointer-events','none');
                     })
                     .on('mouseout', function(){
+                        // Delete the tip and rectangle when hovering outside node's rectangle
+
+                        $(this).attr('opacity', 0.0);
+
                         d3.select('#tip_rect').remove();
                         d3.select('#tip_text').remove();
                         d3.select('#tip_line').remove();
                         d3.select('#tip_circle').remove();
-                        $(this).attr('opacity', 0.0);
                     })
                     .on('click', function(){
+                        // Select node when clicked inside node's rectangle
+
                         var node_id = $(this).attr('id');
                         var node_val = node_id.split('node_');
+
                         $(nodeselection_name).val(node_val[1]);
+
                         for(var i = 0; i < data_format.node.length; i++){
                             element_id = '#'+data_format.node[i];
                            $(element_id).text(data.nodes[node_id][data_format.node[i]] + data_format.units[data_format.node[i]]);
@@ -367,22 +411,28 @@ class Heatmap{
         }
     }
 
+    // Render data on color map
     renderColor(dom_elements, data){
 
+        // Save object (Color map) instance
         var self = this;
 
+        // Update color map selected map (Moisture, Temperature, etc)
         self.selected_map = dom_elements.selected_map;
 
+        //
         d3.selection.prototype.moveToFront = function(){
             return this.each(function(){
                 this.parentNode.appendChild(this);
             });
         };
 
+        // Define data array
         var data_f = new Array(self.x_interp * self.y_interp);
+
+        // Get minimum and maximum of data to display
         var min_val = data.map['z_0'];
         var max_val = data.map['z_0'];
-
         for(var i = 0; i < Object.keys(data.map).length; i++){
             data_f[i] = data.map['z_'+i];
             if(data.map['z_'+i] < min_val){
@@ -393,17 +443,22 @@ class Heatmap{
             }
         }
 
+        // Delete old color map information
         self.heatmap_svg.selectAll('path').remove();
         self.heatmap_svg.selectAll('defs').remove();
-
         for(var i = 0; i < self.x_interp*self.y_interp; i++){
             self.heatmap_svg.select('rect#node_acc_'+i).remove();
             self.heatmap_svg.select('line#arrow_line_'+i).remove();
         }
 
+        // Add calibration rectangle depending on selected map (Moisture, Temperature, etc)
         if(self.selected_map == 'MoistureNode'){
-            min_val =   0.0;
+            // Minimum moisture value:  0%
+            // Maximum moisture value: 60%
+            min_val =  0.0;
             max_val = 60.0;
+
+            // Use normal color gradient for moisture
             self.calibration_svg.append('rect')
                 .attr('id', 'calib_rect')
                 .attr('width', self.svgWidth)
@@ -411,8 +466,12 @@ class Heatmap{
                 .style('fill', 'url(#svgGradient_normal)');
         }
         else if(self.selected_map == 'TemperatureNode'){
+            // Minimum temperature value:  0 °C
+            // Maximum temperature value: 30 °C
             min_val =  0.0;
             max_val = 30.0;
+
+            // Use inverted color gradient for temperature
             self.calibration_svg.append('rect')
                 .attr('id', 'calib_rect')
                 .attr('width', self.svgWidth)
@@ -420,8 +479,12 @@ class Heatmap{
                 .style('fill', 'url(#svgGradient_inverted)');
         }
         else if(self.selected_map == 'AccelerationNode' || self.selected_map == 'ElevationNode' || self.selected_map == 'AzimuthNode'){
+            // Minimum acceleration value:  0 °
+            // Maximum acceleration value: 60 °
             min_val =  0.0;
             max_val = 60.0;
+
+            // Use inverted color gradient for accelerations
             self.calibration_svg.append('rect')
                 .attr('id', 'calib_rect')
                 .attr('width', self.svgWidth)
@@ -432,8 +495,17 @@ class Heatmap{
         $('#less').text(min_val.toFixed(2) + '')
         $('#more').text(max_val.toFixed(2) + '')
 
+        // Add color map depending on selected map (Moisture, Temperature, etc)
         if(self.selected_map == 'AccelerationNode' || self.selected_map == 'ElevationNode' || self.selected_map == 'AzimuthNode'){
-            var defs = self.heatmap_svg.append('svg:defs')
+
+            var rect_w = self.svgWidth/self.x_elements;
+            var rect_h = self.svgHeight/self.y_elements;
+            var thresholds = d3.range(0.0, 60.0);
+
+            // Used for color map SVG definitions
+            var defs = self.heatmap_svg.append('svg:defs');
+
+            // Define arrow for inclination display
             var marker = defs.append('svg:marker')
                 .attr('id', 'arrow')
                 .attr('refX', 0)
@@ -442,27 +514,32 @@ class Heatmap{
                 .attr('markerHeight', 15)
                 .attr('markerUnits', 'strokeWidth')
                 .attr('orient', 'auto')
-                .attr('fill', '#000')
+                .attr('fill', '#000');
+            marker.append('path').attr('d', "M0,0 L0,4 L6,2 z");
 
-            marker.append('path').attr('d', "M0,0 L0,4 L6,2 z")
-            var rect_w = self.svgWidth/self.x_elements
-            var rect_h = self.svgHeight/self.y_elements
-            var thresholds = d3.range(0.0, 60.0);
+            // Use inverted color for accelerations color map
             var color = d3.scaleLinear()
                 .domain(d3.extent(thresholds))
                 .interpolate(function() { return self.invert_scheme;});
+
+            // Make color map for accelerations
             for(var i = 0; i < self.x_elements; i++){
                 for(var j = 0; j < self.y_elements; j++){
-                    var force = data.nodes['node_'+(i+self.x_elements*j)]['AccelerationNode']
-                    var elev = data.nodes['node_'+(i+self.x_elements*j)]['ElevationNode']
-                    var azim = data.nodes['node_'+(i+self.x_elements*j)]['AzimuthNode'] * Math.PI/180.0
+
+                    var force = data.nodes['node_'+(i+self.x_elements*j)]['AccelerationNode'];
+                    var elev = data.nodes['node_'+(i+self.x_elements*j)]['ElevationNode'];
+                    var azim = data.nodes['node_'+(i+self.x_elements*j)]['AzimuthNode'] * Math.PI/180.0;
+
+                    // Add rectangle as color map for accelerations
                     self.heatmap_svg.append('rect')
                         .attr('id', 'node_acc_'+(i+self.x_elements*j))
                         .attr('x', rect_w*i)
                         .attr('y', rect_h*j)
                         .attr('width', rect_w)
                         .attr('height', rect_h)
-                        .attr('fill', color(Math.abs(elev)))
+                        .attr('fill', color(Math.abs(elev)));
+
+                    // Add arrow over color map for accelerations
                     self.heatmap_svg.append('line')
                         .attr('id', 'arrow_line_'+(i+self.x_elements*j))
                         .attr('x1', rect_w*(i + 1/2))
@@ -471,48 +548,56 @@ class Heatmap{
                         .attr('y2', rect_h*(j + 1/2) - elev/60 * rect_h/2 * Math.sin(azim))
                         .attr('stroke-width', 3)
                         .attr('stroke', 'black')
-                        .attr('marker-end', 'url(#arrow)')
+                        .attr('marker-end', 'url(#arrow)');
                 }
             }
         }
         else if(self.selected_map == 'MoistureNode'){
+
             var off_th = 50.9;
             var epsilon = 0.5;
             var thresholds = d3.range(min_val, max_val);
             var thresholds2 = d3.range(off_th-epsilon, off_th+epsilon);
 
+            // Use normal color gradient for temperature
             var color = d3.scaleLinear()
                 .domain(d3.extent(thresholds))
                 .interpolate(function() { return d3.interpolateSpectral; });
 
+            // Define contour for color map
             var contours = d3.contours()
                 .size([self.x_interp, self.y_interp])
                 .thresholds(thresholds);
 
+            // Define contour for flooding area
             var contours2 = d3.contours()
                 .size([self.x_interp, self.y_interp])
                 .thresholds(thresholds2);
 
+            // Select path svg elements
             var path_tmp = self.heatmap_svg.selectAll('path');
 
+            // Add data to color map
             path_tmp.data(contours(data_f))
                 .enter().append('path')
                 .attr('d', d3.geoPath(d3.geoIdentity().scale(self.svgWidth / self.x_interp)))
-                .attr('fill', function(d) { return color(d.value); })
+                .attr('fill', function(d) { return color(d.value); });
 
+            // Add data to flooding area region
             path_tmp.data(contours2(data_f))
                 .enter().append('path')
                 .attr('d', d3.geoPath(d3.geoIdentity().scale(self.svgWidth  / self.x_interp)))
                 .attr('stroke', 'black')
                 .attr('stroke-width', 5)
-                .attr('fill', 'none')
+                .attr('fill', 'none');
 
+            // Add data to flooding area blinking region
             path_tmp.data(contours2(data_f))
                 .enter().append('path')
                 .attr('class', 'blink_me')
                 .attr('d', d3.geoPath(d3.geoIdentity().scale(self.svgWidth  / self.x_interp)))
                 .attr('stroke', 'none')
-                .attr('fill', 'rgba(0, 0, 255, 0.75)')
+                .attr('fill', 'rgba(0, 0, 255, 0.75)');
         }
         else{
             var thresholds = d3.range(min_val, max_val);
@@ -529,6 +614,7 @@ class Heatmap{
                 .attr('fill', function(d) { return color(d.value); });
         }
 
+        // Move to front if there's a tip and rectangle hovering
         for(var i = 0; i < self.x_elements*self.y_elements; i++){
             self.heatmap_svg.select('rect#node_'+i).moveToFront();
         }
@@ -538,18 +624,24 @@ class Heatmap{
         d3.select('#tip_circle').moveToFront();
     }
 
-    invert_scheme(d){
-        return d3.interpolateSpectral(1-d);
+    // Inverts colors for Moisture map
+    invert_scheme(color_input){
+        return d3.interpolateSpectral(1 - color_input);
     };
 }
 
+// Timedata class for timeseries display
 class Timedata{
 
+    // Class constructor
     constructor(dom_elements, dimensions, margin){
+
         this.timedata_svg = d3.select(dom_elements.timedata_name);
         this.dataselection_name = dom_elements.dataselection_name;
         this.selected_map = dom_elements.selected_map;
         this.margin = margin;
+
+        // Check if window dimensions are more vertical or horizontal (considering margins)
         if(dimensions.width - margin.left - margin.right <= dimensions.height - margin.top - margin.bottom){
             this.svgWidth = dimensions.width - margin.left - margin.right;
             this.svgHeight = dimensions.width - margin.top - margin.bottom;
@@ -560,26 +652,34 @@ class Timedata{
         }
     }
 
+    // Initialize timeseries dimensions and position
     initializeSerie(data, data_format){
+
+        // Save object (Timedata) instance
         var self = this;
 
+        // Set SVG Map dimensions
         self.timedata_svg.attr('width', self.svgWidth + self.margin.left + self.margin.right);
         self.timedata_svg.attr('height', self.svgHeight + self.margin.top + self.margin.bottom);
 
+        // Define display translation on SVG
         var g = self.timedata_svg.append('g')
-        .attr('transform', 'translate(' + self.margin.left + ',' + self.margin.top + ')'
-        );
+            .attr('transform', 'translate(' + self.margin.left + ',' + self.margin.top + ')');
 
+        // Define x and y axis scale dimensions with respect to SVG
         var x = d3.scaleTime().rangeRound([0, self.svgWidth - 50]);
         var y = d3.scaleLinear().rangeRound([self.svgHeight, 0]);
 
+        // Define line graphic from parsed data
         var line = d3.line()
             .x(function(d){ return x(d.date) })
             .y(function(d){ return y(d.value) });
 
+        // Define x and y domain values
         x.domain(d3.extent(data, function(d){ return d.date }));
         y.domain(d3.extent(data, function(d){ return d.value }));
 
+        // Add background grid to SVG on x axis
         g.append('g')
         .attr('class', 'grid')
         .call(d3.axisBottom(x).ticks(10)
@@ -587,6 +687,7 @@ class Timedata{
             .tickFormat('')
         );
 
+        // Add background grid to SVG on y axis
         g.append('g')
         .attr('class', 'grid')
         .call(d3.axisLeft(y).ticks(5)
@@ -594,11 +695,13 @@ class Timedata{
             .tickFormat('')
         );
 
+        // Add text on x axis on SVG
         g.append('g')
         .attr('class', 'white_axis')
         .attr('transform', 'translate(0,' + self.svgHeight + ')')
         .call(d3.axisBottom(x))
 
+        // Add a thich line over the x axis on SVG
         g.append('g')
         .attr('class', 'white_axis')
         .call(d3.axisBottom(x))
@@ -606,6 +709,7 @@ class Timedata{
         .selectAll('text')
         .remove()
 
+        // Add a thich line over the y axis on SVG
         g.append('g')
         .attr('class', 'white_axis')
         .attr('transform', 'translate(' + parseInt(self.svgWidth - 50) + ', 0)')
@@ -614,6 +718,7 @@ class Timedata{
         .selectAll('text')
         .remove()
 
+        // Add text on y axis on SVG
         g.append('g')
         .attr('class', 'white_axis')
         .call(d3.axisLeft(y))
@@ -628,13 +733,13 @@ class Timedata{
         .text($(self.dataselection_name).val() +' [' + data_format.units[self.selected_map] +']');
     }
 
+    // Render data on timedata
     drawChart(data_unparsed, data_format) {
 
-        var dx_tip = -50;
-        var dy_tip = 30;
-
+        // Save object (Timedata) instance
         var self = this;
 
+        // Parse data
         var data = [];
         for(var i = 0; i < data_unparsed.length; i++) {
             data.push(
@@ -644,21 +749,27 @@ class Timedata{
             })
         }
 
+        // Remove old data
         self.timedata_svg.selectAll('*').remove();
 
+        // Define display translation on SVG
         var g = self.timedata_svg.append('g')
             .attr('transform', 'translate(' + self.margin.left + ',' + self.margin.top + ')');
 
+        // Define x and y axis scale dimensions with respect to SVG
         var x = d3.scaleTime().rangeRound([0, self.svgWidth - 50]);
         var y = d3.scaleLinear().rangeRound([self.svgHeight, 0]);
 
+        // Define line graphic from parsed data
         var line = d3.line()
             .x(function(d){ return x(d.date) })
             .y(function(d){ return y(d.value) });
 
+        // Define x and y domain values
         x.domain(d3.extent(data, function(d){ return d.date }));
         y.domain(d3.extent(data, function(d){ return d.value }));
 
+        // Add background grid to SVG on x axis
         g.append('g')
         .attr('class', 'grid')
         .call(d3.axisBottom(x).ticks(10)
@@ -666,6 +777,7 @@ class Timedata{
             .tickFormat('')
         );
 
+        // Add background grid to SVG on y axis
         g.append('g')
         .attr('class', 'grid')
         .call(d3.axisLeft(y).ticks(5)
@@ -673,11 +785,13 @@ class Timedata{
             .tickFormat('')
         );
 
+        // Add text on x axis on SVG
         g.append('g')
         .attr('class', 'white_axis')
         .attr('transform', 'translate(0,' + self.svgHeight + ')')
         .call(d3.axisBottom(x))
 
+        // Add a thich line over the x axis on SVG
         g.append('g')
         .attr('class', 'white_axis')
         .call(d3.axisBottom(x))
@@ -685,6 +799,7 @@ class Timedata{
         .selectAll('text')
         .remove()
 
+        // Add a thich line over the y axis on SVG
         g.append('g')
         .attr('class', 'white_axis')
         .attr('transform', 'translate(' + parseInt(self.svgWidth - 50) + ', 0)')
@@ -693,6 +808,7 @@ class Timedata{
         .selectAll('text')
         .remove()
 
+        // Add text on y axis on SVG
         g.append('g')
         .attr('class', 'white_axis')
         .call(d3.axisLeft(y))
@@ -706,6 +822,7 @@ class Timedata{
         .attr('text-anchor', 'end')
         .text($(self.dataselection_name).val() +' [' + data_format.units[self.selected_map] +']');
 
+        // Add data and line graphic to SVG
         g.append('path')
         .datum(data)
         .attr('fill', 'none')
@@ -715,6 +832,11 @@ class Timedata{
         .attr('stroke-width', 2)
         .attr('d', line);
 
+        // Define the tip position when hovering over data
+        var dx_tip = -50;
+        var dy_tip = 30;
+
+        // Add hovering tip to every point in data
         self.timedata_svg.selectAll('.dot')
         .data(data)
         .enter().append('circle')
@@ -724,15 +846,18 @@ class Timedata{
         .attr('r', 5)
         .attr('opacity', 0.0)
         .on('mouseover', function(d){
-            var x_t = d3.select(this).attr('cx')
-            var y_t = d3.select(this).attr('cy')
-            var w = d3.select(this).attr('r')
-            var h = d3.select(this).attr('r')
-            var cx = parseInt(x_t)+parseInt(w)/2
-            var cy = parseInt(y_t)+parseInt(h)/2
-            var dx = cx+dx_tip
-            var dy = cy-dy_tip
-            var asdf = new Date(d.date)
+            // Add the tip and text when hovering over a point
+
+            var x_t = d3.select(this).attr('cx');
+            var y_t = d3.select(this).attr('cy');
+            var w = d3.select(this).attr('r');
+            var h = d3.select(this).attr('r');
+            var cx = parseInt(x_t)+parseInt(w)/2;
+            var cy = parseInt(y_t)+parseInt(h)/2;
+            var dx = cx+dx_tip;
+            var dy = cy-dy_tip;
+            var asdf = new Date(d.date);
+            // Define text background rectangle
             self.timedata_svg.append('rect')
                 .attr('id', 'tip_rect')
                 .attr('x', parseInt(x_t)-70)
@@ -742,6 +867,7 @@ class Timedata{
                 .attr('fill', 'black')
                 .attr('opacity', 0.7)
                 .style('pointer-events','none');
+            // Define text of the data to show (date)
             self.timedata_svg.append('text')
                 .attr('id', 'tip_text_date')
                 .text(''+asdf.getDate()+'/'+(asdf.getMonth()+1)+'/'+asdf.getFullYear()+'-'+('0' + asdf.getHours()).slice(-2)+':'+('0' + asdf.getMinutes()).slice(-2))
@@ -751,6 +877,7 @@ class Timedata{
                 .attr('fill', 'white')
                 .attr('font-size', '16px')
                 .style('pointer-events','none');
+            // Define text of the data to show (value)
             self.timedata_svg.append('text')
                 .attr('id', 'tip_text_value')
                 .text(''+d.value.toFixed(3) + data_format.units[self.selected_map])
@@ -760,6 +887,7 @@ class Timedata{
                 .attr('fill', 'white')
                 .attr('font-size', '16px')
                 .style('pointer-events','none');
+            // Define tip line
             self.timedata_svg.append('line')
                 .attr('id', 'tip_line')
                 .attr('x1', x_t)
@@ -769,6 +897,7 @@ class Timedata{
                 .attr('stroke-width', 1)
                 .attr('stroke', 'red')
                 .style('pointer-events','none');
+            // Define red circle highlight
             self.timedata_svg.append('circle')
                 .attr('id', 'tip_circle')
                 .attr('cx', x_t)
@@ -779,6 +908,8 @@ class Timedata{
             $(this).attr('class', 'focus')
         })
         .on('mouseout', function(){
+            // Delete the tip and text when hovering outside data point
+
             d3.select('#tip_rect').remove();
             d3.select('#tip_text_date').remove();
             d3.select('#tip_text_value').remove();

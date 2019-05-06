@@ -96,7 +96,10 @@ DATABASES = {
         'USER': db_user['Parameter']['Value'],
         'PASSWORD': db_password['Parameter']['Value'],
         'HOST': db_hostname['Parameter']['Value'],
-        'PORT': db_port['Parameter']['Value']
+        'PORT': db_port['Parameter']['Value'],
+        'OPTIONS': {
+            'sql_mode': 'traditional',
+        }
     }
 }
 
